@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "Vitis-2020.2-Zynq7020",
+            "includePath": [
+                "${workspaceFolder}/**",
+                
+                // 1. Vitis 硬件驱动库 (使用 /** 自动化递归扫描，防止手写路径切断)
+                "${workspaceFolder}/Signal_separation_platform/**",
+                
+                // 2. 核心 C 标准库 (精准定位 usr/include)
+                "D:/FPGA/Xilinx/Vitis/2020.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include",
+                
+                // 3. 编译器内置库 (你提供的高级路径，精准解决 stddef.h, stdarg.h 找不到)
+                "D:/FPGA/Xilinx/Vitis/2020.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/9.2.0/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            // 4. 填入编译器路径，让 VS Code 具备底层底层标准库的自动推导能力
+            "compilerPath": "D:/FPGA/Xilinx/Vitis/2020.2/gnu/aarch32/nt/gcc-arm-none-eabi/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "windows-gcc-arm"
+        }
+    ],
+    "version": 4
+}

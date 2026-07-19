@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ASCII"?>
+<sdkproject:SdkProject xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sdkproject="http://www.xilinx.com/sdkproject" name="Signal_separation_app" location="E:/7020_Project/2023H/2023H_PS/Signal_separation_app" platform="E:/7020_Project/2023H/2023H_PS/Signal_separation_platform/export/Signal_separation_platform/Signal_separation_platform.xpfm" platformUID="xilinx:::0.0(custom)" systemProject="Signal_separation_app_system" sysConfig="Signal_separation_platform" runtime="C/C++" cpu="standalone_domain" cpuInstance="ps7_cortexa9_0" os="standalone" mssSignature="30c7fb43c3dd9da2de0675b1fff9050e">
+  <configuration name="Debug" id="xilinx.gnu.armv7.exe.debug.1713669665">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+    <lastBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <configuration name="Release" id="xilinx.gnu.armv7.exe.release.270582207" dirty="true">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <template appTemplateName="empty_application"/>
+</sdkproject:SdkProject>

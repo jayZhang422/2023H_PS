@@ -1,0 +1,17 @@
+# Vitis generated products and local workspace state
+Debug/
+Release/
+Signal_separation_app/Debug/
+Signal_separation_app/Release/
+Signal_separation_app_system/Debug/
+Signal_separation_app_system/Release/
+Signal_separation_platform/export/
+Signal_separation_platform/hw/
+Signal_separation_platform/tempdsa/
+Signal_separation_app/_ide/bitstream/
+.metadata/
+RemoteSystemsTempFiles/
+IDE.log
+*.elf
+*.elf.size
+*.map
