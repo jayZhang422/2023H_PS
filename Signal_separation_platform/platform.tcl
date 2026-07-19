@@ -52,3 +52,55 @@ platform clean
 platform generate
 platform active {Signal_separation_platform}
 bsp reload
+platform clean
+platform generate
+platform active {Signal_separation_platform}
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform active {Signal_separation_platform}
+platform clean
+platform generate
+platform active {Signal_separation_platform}
+platform config -updatehw {E:/7020_Project/2023H/2023H_PL/2023H_pl/top.xsa}
+platform config -updatehw {E:/7020_Project/2023H/2023H_PL/2023H_pl/top.xsa}
+platform clean
+platform generate
+platform clean
+platform generate
+platform active {Signal_separation_platform}
+bsp reload
+platform active {Signal_separation_platform}
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate
+platform clean
+platform generate

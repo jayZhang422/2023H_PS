@@ -45,11 +45,18 @@ static void app_report_result(const signal_analysis_result_t *result)
 static int app_capture_measurement(signal_analysis_result_t *measurement,
                                    u32 attempt)
 {
+    XTime capture_start_time;
+    XTime capture_end_time;
+    XTime analysis_end_time;
+    int analysis_status;
+
+    XTime_GetTime(&capture_start_time);
     if (dma_capture_frame(&g_dma_rx, g_adc_raw_buffer,
                           APP_RX_FRAME_BYTES) != XST_SUCCESS) {
         dma_dump_s2mm_regs("S2MM capture failure:", &g_dma_rx);
         return XST_FAILURE;
     }
+    XTime_GetTime(&capture_end_time);
 
     Xil_DCacheInvalidateRange((UINTPTR)g_adc_raw_buffer,
                               APP_RX_FRAME_BYTES);
@@ -57,10 +64,24 @@ static int app_capture_measurement(signal_analysis_result_t *measurement,
         diagnostics_report_adc_frame(g_adc_raw_buffer, attempt);
         dma_dump_s2mm_regs("DBG S2MM:", &g_dma_rx);
     }
-    return signal_analyze_frame(g_adc_raw_buffer, &g_fft_instance,
-                                g_time_domain_buffer, g_fft_input_buffer,
-                                g_fft_spectrum_buffer, g_fft_magnitude_buffer,
-                                g_model_buffer, measurement);
+    analysis_status = signal_analyze_frame(g_adc_raw_buffer, &g_fft_instance,
+                                           g_time_domain_buffer,
+                                           g_fft_input_buffer,
+                                           g_fft_spectrum_buffer,
+                                           g_fft_magnitude_buffer,
+                                           g_model_buffer, measurement);
+    XTime_GetTime(&analysis_end_time);
+    if (diagnostics_should_report(attempt)) {
+        xil_printf("DBG TIME[%d]: dma_ms=%d analysis_ms=%d total_ms=%d\r\n",
+                   (int)attempt,
+                   (int)((capture_end_time - capture_start_time) * 1000U /
+                         COUNTS_PER_SECOND),
+                   (int)((analysis_end_time - capture_end_time) * 1000U /
+                         COUNTS_PER_SECOND),
+                   (int)((analysis_end_time - capture_start_time) * 1000U /
+                         COUNTS_PER_SECOND));
+    }
+    return analysis_status;
 }
 
 static int app_start_forced_dds_test(dds_control_t *dds_control)

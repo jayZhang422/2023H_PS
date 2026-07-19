@@ -250,3 +250,38 @@ Both have 12-bit addresses through `phase_acc[31:20]`. XCI output products gener
 ## Source Coverage Record
 
 This initialization read source RTL, both testbenches, all 101 physical XCI files including source/cache/generated dependencies, all three BD files, all 41 Tcl files, both COE files, XDC, XPR, generated system wrapper, existing Markdown, and current post-route timing/DRC reports. Binary checkpoints, bitstreams, simulator databases, and vendor HDL were inventoried as generated artifacts rather than treated as authored RTL.
+
+<!-- SYNC: PL_AUTOMATION_CONTRACT_START -->
+## 14. PL Automation Contract
+
+The authoritative PL automation entry points are in `2023H_PL/script` and
+use Vivado 2020.2 with project `2023H_pl.xpr`.
+
+- `pl_update_bd.tcl` reuses an already-open `2023H_pl` project, opens it only
+  when none is open, and refuses to operate when another project is open. It
+  runs `validate_bd_design` (Vivado F6) before saving the BD, regenerating
+  Output Products, regenerating `system_wrapper.v`, or exporting `system.tcl`.
+  A validation failure stops the workflow before those writes. Output Products
+  and the wrapper use `-force` so a validated BD update is not skipped merely
+  because prior generated files exist.
+- `pl_build_bitstream.tcl` defaults to `general.maxThreads=24` and `-jobs 24`.
+  It considers hardware current only when `top.bit` exists, `synth_1` is
+  `synth_design Complete!` with `NEEDS_REFRESH=0`, and `impl_1` is
+  `write_bitstream Complete!` with `NEEDS_REFRESH=0`. If current, it prompts
+  for `1` to reset and fully rebuild or `0` to keep `top.bit` and `top.xsa`.
+  `--rebuild` and `--keep` provide noninteractive equivalents; an out-of-date
+  design always rebuilds. A rebuild resets `impl_1`, resets `synth_1`, runs and
+  waits for synthesis, then runs implementation through bitstream generation
+  before exporting the XSA with the bitstream.
+- `pl_update_bd.bat` and `pl_build_bitstream.bat` are double-click Windows
+  launchers. They call their paired TCL files, forward optional arguments, and
+  keep the console open to display progress or errors.
+- `--check` validates object names and existing generated files without
+  regenerating outputs. `pl_update_bd.tcl --validate-only` performs only the
+  F6-equivalent BD validation.
+
+Script validation in this session passed for the existing `2023H_pl` project,
+including the already-open-project path, BD validation, bitstream current-state
+detection, and the interactive `0` / `--keep` no-write path. `system.tcl`,
+`top.xsa`, `top.bit`, and `2023H_pl.xpr` were not modified during these checks.
+<!-- SYNC: PL_AUTOMATION_CONTRACT_END -->

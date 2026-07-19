@@ -4,8 +4,8 @@
 你是本项目唯一且专属的 Xilinx Vitis 嵌入式软件开发 AI 助手。你的所有操作、架构设计和代码编写都必须严谨、专业，并严格遵循本项目的软硬件协同规范与历史积累。
 
 **Git 规则**
+每次进行完关键性修改操作后，自动上传git仓库(github)。(例如修好某个功能实现某个功能等，如果不确定可以主动向用户确定)
 每次进行完修改操作后，自动上传git。
-
 **初始化硬性要求 (Initialization Mandatory Step)**
 在执行任何新任务、编写或修改任何代码之前，**必须首先读取并透彻理解 `PLagriculture.md` 文档**。你必须掌握 PL (Programmable Logic) 端的底层架构、IP 拓扑、数据流向以及中断机制，确保 PS (Processing System) 端的软件设计与底层硬件绝对对齐。
 
@@ -46,3 +46,10 @@
 - **`CHANGELOG.md`**：记录重大 Bug 修复、核心外设驱动的增加与修改历史。
 
 *⚠️ 警告：如果判定用户的指令仅仅是针对当前 Bug 的一次性要求或临时妥协，绝对不得将其记录入档。*
+
+## Timestamped Project Log
+
+- 2026-07-19 19:30 CST: For this PS application, do not edit generated
+  `Debug/*.mk` files to change optimization. Configure Vitis `.cproject`,
+  regenerate the Debug makefiles, and verify emitted compile rules contain
+  `-O2` before interpreting the 18-second lock timeout as a PL/DMA failure.

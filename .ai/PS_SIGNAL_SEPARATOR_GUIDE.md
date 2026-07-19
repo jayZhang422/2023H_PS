@@ -137,3 +137,67 @@ The following require board verification and are not proven by C compilation:
 
 Do not add PL decimation or an output-referenced DPLL unless measured results
 show that this baseline fails an acceptance criterion.
+
+## 7. Pending Performance Review (2026-07-19)
+
+This is a design record only. No estimator, RTL, or build-setting change has
+been made from this review.
+
+The active Debug build is `-O0`; its candidate loop evaluates up to eight FFT
+peaks as 28 frequency pairs times four waveform combinations. Each candidate
+performs repeated 4096-point `sinf`/`cosf` projections and residual synthesis.
+It is therefore a credible explanation for collecting only four lock frames in
+the 18-second lock window. A lock starts only after three consecutive accepted
+frames, so two early rejects followed by accepted frames three and four cannot
+start DDS.
+
+Recommended next changes, after a timed baseline is captured, are:
+
+1. Separate frequency hypotheses from the four waveform-type fits, but retain
+   enough hypotheses to cover triangle harmonics and the `fB = 3*fA` collision.
+   A magnitude-only winner is not sufficient proof of the two fundamentals.
+2. Apply the existing 5 kHz grid tolerance while constructing frequency
+   hypotheses. Treat it as a reduction in candidates, not as a substitute for
+   joint residual validation.
+3. Replace inner-loop transcendental calls only after measuring time by stage.
+   A 4096-entry LUT needs phase interpolation for arbitrary refined
+   frequencies; recurrence/Goertzel-style projections are an alternative.
+   Preserve the current synthetic four-type and 25/75 kHz collision tests.
+4. Run the production test from the Release configuration before changing
+   algorithm structure. Release is already configured for the toolchain's
+   `optimization.level.more`; Debug is not. The existing flags select scalar
+   `-mfpu=vfpv3 -mfloat-abi=hard`, so changing to `-O2` alone must not be
+   described as automatically enabling NEON vector instructions.
+
+For the forced DDS test, a continuous ILA `da_data_a/b` trace with a periodic
+analogue scope spike localizes the remaining investigation downstream of the
+registered PL data signals: DAC input sampling timing, output-pin skew, DAC
+major-carry glitch energy, output reconstruction filtering, or the analogue
+path. The current XDC has pin locations and I/O standards but no DAC output
+delay constraints, so board-level DAC timing has not yet been proven.
+
+### 7.1 2026-07-19 Board Evidence and Adopted Build Rule
+
+With a 50 kHz + 100 kHz, 1 Vpp sine input stable for 20 seconds before KEY1,
+the first two DMA frames still had near-midscale or clipped content; frames
+three and four correctly identified 50/100 kHz sine with residual near 0.012.
+Those two accepted frames cannot satisfy the required three-frame lock before
+the 18-second timeout. The application now emits per-attempt DMA, analysis,
+and total millisecond timings so a board run can measure this directly.
+
+The Vitis Debug configuration is intentionally set to
+`gnu.c.optimization.level.more` (`-O2`) while retaining its existing Debug
+artifact path and BSP linkage. PS build Tcl scripts verify that regenerated
+Debug compile rules contain `-O2` before creating or downloading an ELF. Do
+not edit generated `Debug/*.mk` files; refresh the Vitis project to regenerate
+them from `.cproject`.
+
+Forced DDS testing produced correct 50/100 kHz frequency and continuous ILA
+data while the analogue scope showed periodic spikes of several volts, reduced
+but not removed by the scope bandwidth limit. This excludes the PS analyzer,
+DMA, and registered DDS data as the source of the spike. It is evidence for a
+post-register problem: DAC major-carry/transient energy, DAC input-latch timing,
+missing or insufficient reconstruction filtering, or the analogue output path.
+The bandwidth-limit result alone cannot distinguish these causes. No XDC DAC
+output-delay constraint is added until the DAC-board data sheet supplies the
+receiver edge, setup/hold values, and board propagation delays.

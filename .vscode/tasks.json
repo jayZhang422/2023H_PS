@@ -1,0 +1,35 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Vitis: 1.更新Platform并构建",
+            "type": "shell",
+            "command": "D:\\FPGA\\Xilinx\\Vitis\\2020.2\\bin\\xsct.bat",
+            "args": [
+                ".\\script\\ps_update_platform_and_build.tcl"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Vitis: 2.重新构建系统",
+            "type": "shell",
+            "command": "D:\\FPGA\\Xilinx\\Vitis\\2020.2\\bin\\xsct.bat",
+            "args": [
+                ".\\script\\ps_rebuild_system.tcl"
+            ],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Vitis: 3.一键下载并运行(JTAG)",
+            "type": "shell",
+            "command": "D:\\FPGA\\Xilinx\\Vitis\\2020.2\\bin\\xsct.bat",
+            "args": [
+                ".\\script\\ps_program_and_run.tcl"
+            ],
+            "group": "test",
+            "problemMatcher": []
+        }
+    ]
+}

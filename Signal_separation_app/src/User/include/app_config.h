@@ -87,9 +87,8 @@
  * Board bring-up diagnostics. Keep DDS test mode at zero for normal use.
  * Setting it to one proves the BRAM -> DDS -> DAC path without ADC or DMA.
  */
-#define APP_DIAG_BUILD_TAG           "BTN_LOCK_DIAG_20260718"
+#define APP_DIAG_BUILD_TAG           "BTN_LOCK_DIAG_O2_20260719"
 #define APP_DIAG_FIRST_ATTEMPTS      4U
 #define APP_DIAG_REPORT_PERIOD       16U
-#define APP_DIAG_FORCE_DDS_TEST      0
-
+#define APP_DIAG_FORCE_DDS_TEST      0   //0: normal 1:force
 #endif /* USER_INCLUDE_APP_CONFIG_H_ */
