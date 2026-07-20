@@ -51,9 +51,9 @@ static int app_capture_measurement(signal_analysis_result_t *measurement,
     int analysis_status;
 
     XTime_GetTime(&capture_start_time);
-    if (dma_capture_frame(&g_dma_rx, g_adc_raw_buffer,
+    if (dma_capture_frame(&g_dma_rx, APP_DMA_RX_DEV_ID, g_adc_raw_buffer,
                           APP_RX_FRAME_BYTES) != XST_SUCCESS) {
-        dma_dump_s2mm_regs("S2MM capture failure:", &g_dma_rx);
+        dma_dump_s2mm_regs("S2MM capture failed:", &g_dma_rx);
         return XST_FAILURE;
     }
     XTime_GetTime(&capture_end_time);
@@ -100,7 +100,11 @@ static int app_start_forced_dds_test(dds_control_t *dds_control)
     channel_b.measured_phase_rad = 0.0f;
     channel_b.waveform = SIGNAL_WAVE_SINE;
     dds_control_from_component(&channel_a, 0.0f, &dds_a);
-    dds_control_from_component(&channel_b, 0.0f, &dds_b);
+    dds_control_from_component(&channel_b,
+                               APP_DDS_B_PHASE_COMPENSATION_DEGREES,
+                               &dds_b);
+    dds_a.amplitude_code = APP_DIAG_FORCE_DDS_AMPLITUDE;
+    dds_b.amplitude_code = APP_DIAG_FORCE_DDS_AMPLITUDE;
 
     if (dds_control_commit(dds_control, &dds_a, &dds_b, 1, 1) !=
         XST_SUCCESS) {
@@ -206,6 +210,7 @@ int main(void)
         xil_printf("ERROR: application initialization failed\r\n");
         return XST_FAILURE;
     }
+    dma_dump_s2mm_regs("S2MM initialized:", &g_dma_rx);
 
     dds_control_init(&dds_control);
     stopped_channel.waveform = SIGNAL_WAVE_SINE;
@@ -287,7 +292,9 @@ int main(void)
         }
 
         dds_control_from_component(&locked_result.channel_a, 0.0f, &dds_a);
-        dds_control_from_component(&locked_result.channel_b, phase_degrees,
+        dds_control_from_component(&locked_result.channel_b,
+                                   phase_degrees +
+                                   APP_DDS_B_PHASE_COMPENSATION_DEGREES,
                                    &dds_b);
         if (dds_control_commit(&dds_control, &dds_a, &dds_b, 1, 1) !=
             XST_SUCCESS) {

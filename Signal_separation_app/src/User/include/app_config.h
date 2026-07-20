@@ -41,7 +41,8 @@
 
 /* The exported hardware platform has exactly one simple-mode S2MM DMA. */
 #define APP_DMA_RX_DEV_ID           XPAR_AXI_DMA_ADC_DEVICE_ID
-#define APP_DMA_TIMEOUT              100000000U
+#define APP_DMA_CAPTURE_TIMEOUT_MS   1000U
+#define APP_DMA_RESET_TIMEOUT        1000000U
 
 /*
  * DMA writes this fixed DDR region. It is not a PL register address; fixed
@@ -53,6 +54,9 @@
 #define APP_DDS_BRAM_BASEADDR       XPAR_AXI_BRAM_CTRL_0_S_AXI_BASEADDR
 #define APP_DDS_CLOCK_HZ            125000000.0f
 #define APP_DDS_UNITY_AMPLITUDE     8191U
+
+/* The module's channel B analogue output is inverted after the DAC. */
+#define APP_DDS_B_PHASE_COMPENSATION_DEGREES 180.0f
 
 #define APP_DDS_A_WAVE_OFFSET       0x00U
 #define APP_DDS_A_STEP_OFFSET       0x04U
@@ -87,8 +91,9 @@
  * Board bring-up diagnostics. Keep DDS test mode at zero for normal use.
  * Setting it to one proves the BRAM -> DDS -> DAC path without ADC or DMA.
  */
-#define APP_DIAG_BUILD_TAG           "BTN_LOCK_DIAG_O2_20260719"
+#define APP_DIAG_BUILD_TAG           "BTN_LOCK_DIAG_O2_20260721"
 #define APP_DIAG_FIRST_ATTEMPTS      4U
 #define APP_DIAG_REPORT_PERIOD       16U
 #define APP_DIAG_FORCE_DDS_TEST      0   //0: normal 1:force
+#define APP_DIAG_FORCE_DDS_AMPLITUDE APP_DDS_UNITY_AMPLITUDE
 #endif /* USER_INCLUDE_APP_CONFIG_H_ */

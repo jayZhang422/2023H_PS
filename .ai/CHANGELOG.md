@@ -1,5 +1,33 @@
 # 2026-07-19 - Vitis Workspace Recovery and Application Build Repair
 
+## 2026-07-19 22:30 CST - DMA Recovery and Grid Estimator Optimization
+
+### Changed
+
+- Added bounded S2MM reset, reset completion wait, and receive-channel
+  reinitialization after a DMA start failure or timeout.
+- Added two capture-only warm-up frames after KEY1; they invalidate the DMA
+  buffer but do not consume analysis time or lock confirmations.
+- Snapped FFT hypotheses to the 5 kHz contest grid before pair fitting,
+  retained 3:1 collision hypotheses, and replaced inner 4096-point
+  transcendental loops with normalized oscillator recurrence.
+- Applied the AD9767 module's channel-B analogue inversion as a 180-degree
+  phase-word compensation, including the forced DDS diagnostic path.
+
+## 2026-07-19 22:30 CST - DMA Recovery and Grid Estimator Optimization
+
+### Changed
+
+- Added bounded S2MM reset, reset completion wait, and receive-channel
+  reinitialization after a DMA start failure or timeout.
+- Added two capture-only warm-up frames after KEY1; they invalidate the DMA
+  buffer but do not consume analysis time or lock confirmations.
+- Snapped FFT hypotheses to the 5 kHz contest grid before pair fitting,
+  retained 3:1 collision hypotheses, and replaced inner 4096-point
+  transcendental loops with normalized oscillator recurrence.
+- Applied the AD9767 module's channel-B analogue inversion as a 180-degree
+  phase-word compensation, including the forced DDS diagnostic path.
+
 ## 2026-07-19 19:30 CST - Lock Timing and Optimized Debug Build
 
 ### Changed

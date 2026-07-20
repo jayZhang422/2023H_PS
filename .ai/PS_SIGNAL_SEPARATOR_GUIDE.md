@@ -138,36 +138,23 @@ The following require board verification and are not proven by C compilation:
 Do not add PL decimation or an output-referenced DPLL unless measured results
 show that this baseline fails an acceptance criterion.
 
-## 7. Pending Performance Review (2026-07-19)
+## 7. Implemented Performance Review (2026-07-19)
 
-This is a design record only. No estimator, RTL, or build-setting change has
-been made from this review.
+The active estimator filters refined FFT peaks to the required 5 kHz grid
+before pair fitting. It also inserts valid 3:1 grid hypotheses so the
+`fB = 3*fA` triangle-harmonic collision remains subject to the same four
+joint residual models rather than a magnitude-only decision.
 
-The active Debug build is `-O0`; its candidate loop evaluates up to eight FFT
-peaks as 28 frequency pairs times four waveform combinations. Each candidate
-performs repeated 4096-point `sinf`/`cosf` projections and residual synthesis.
-It is therefore a credible explanation for collecting only four lock frames in
-the 18-second lock window. A lock starts only after three consecutive accepted
-frames, so two early rejects followed by accepted frames three and four cannot
-start DDS.
+The fundamental projections and sine/triangle template generation use a
+normalized complex oscillator recurrence. Trigonometric calls now initialize
+each oscillator rather than appearing in every 4096-point inner loop. Initial
+fundamental estimates are shared by all four waveform combinations. The
+existing four waveform and 25/75 kHz collision self-tests remain mandatory.
 
-Recommended next changes, after a timed baseline is captured, are:
-
-1. Separate frequency hypotheses from the four waveform-type fits, but retain
-   enough hypotheses to cover triangle harmonics and the `fB = 3*fA` collision.
-   A magnitude-only winner is not sufficient proof of the two fundamentals.
-2. Apply the existing 5 kHz grid tolerance while constructing frequency
-   hypotheses. Treat it as a reduction in candidates, not as a substitute for
-   joint residual validation.
-3. Replace inner-loop transcendental calls only after measuring time by stage.
-   A 4096-entry LUT needs phase interpolation for arbitrary refined
-   frequencies; recurrence/Goertzel-style projections are an alternative.
-   Preserve the current synthetic four-type and 25/75 kHz collision tests.
-4. Run the production test from the Release configuration before changing
-   algorithm structure. Release is already configured for the toolchain's
-   `optimization.level.more`; Debug is not. The existing flags select scalar
-   `-mfpu=vfpv3 -mfloat-abi=hard`, so changing to `-O2` alone must not be
-   described as automatically enabling NEON vector instructions.
+After KEY1, two DMA frames are captured and discarded before locking. Any DMA
+start failure or timeout triggers a bounded AXI DMA reset and S2MM
+reinitialization before the next attempt. The active Debug build is `-O2`;
+no NEON instruction assumption is made.
 
 For the forced DDS test, a continuous ILA `da_data_a/b` trace with a periodic
 analogue scope spike localizes the remaining investigation downstream of the
