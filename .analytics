@@ -232,3 +232,6 @@ timestamp=[2026-07-20 19:18:17], mode=PLATFORM_GENERATION, duration=0:00:03.935,
 timestamp=[2026-07-20 19:18:17], mode=BUILD, duration=0:00:00.238, duration_ms=238, data={name=Signal_separation_app, configuration=Debug, clean_build=true}
 timestamp=[2026-07-20 19:18:51], mode=PLATFORM_GENERATION, duration=0:00:09.241, duration_ms=9241, data={name=Signal_separation_platform}
 timestamp=[2026-07-20 19:18:57], mode=BUILD, duration=0:00:05.036, duration_ms=5036, data={name=Signal_separation_app, configuration=Debug, clean_build=false}
+timestamp=[2026-07-21 12:05:17], mode=WORKBENCH_START, duration=0:00:10.526, duration_ms=10526, data={}
+timestamp=[2026-07-21 12:05:18], mode=WORKBENCH_UI_INIT, duration=0:00:00.648, duration_ms=648, data={editors_count=4, platform_editors_count=2, projects_count=4, platform_projects_count=1, active_platform_editor=true, projects=RemoteSystemsTempFiles,Signal_separation_app,Signal_separation_app_system,Signal_separation_platform}
+timestamp=[2026-07-21 12:05:18], mode=PLATFORM_REPOSITORY_INIT, duration=0:00:00.048, duration_ms=48, data={}
