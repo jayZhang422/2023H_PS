@@ -71,6 +71,7 @@
 
 #define APP_DDS_CONTROL_RUN         0x01U
 #define APP_DDS_CONTROL_PHASE_LOAD  0x02U
+#define APP_DDS_CONTROL_B_PHASE_ADJUST 0x04U
 
 /* B' initial phase is an intentional user setting, not the measured input phase. */
 #define APP_B_TO_A_PHASE_DEGREES    0.0f
@@ -80,9 +81,11 @@
 /* Synthetic algorithm regression runs before the first DMA capture. */
 #define APP_ENABLE_STARTUP_SELF_TEST 1
 
-/* PS MIO buttons shown on the board schematic. Both are assumed active low. */
+/* KEY1 remains MIO50. The three active-low EMIO keys are Bank 2 pins 54..56. */
 #define BUTTON_START                 50U
-#define BUTTON_PHASE_ADJ             51U
+#define BUTTON_RESET                 54U
+#define BUTTON_PHASE_INC             55U
+#define BUTTON_PHASE_DEC             56U
 #define APP_BUTTON_ACTIVE_LEVEL      0U
 #define APP_BUTTON_DEBOUNCE_US       20000U
 #define APP_BUTTON_POLL_US           1000U

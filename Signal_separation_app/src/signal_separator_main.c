@@ -27,6 +27,7 @@
 static XAxiDma g_dma_rx;
 static arm_rfft_fast_instance_f32 g_fft_instance;
 
+/*printf Func*/
 static void app_report_result(const signal_analysis_result_t *result)
 {
     xil_printf("A: %s f=%d Hz amp=%d phase_mrad=%d\r\n",
@@ -41,6 +42,7 @@ static void app_report_result(const signal_analysis_result_t *result)
                (int)(result->channel_b.measured_phase_rad * 1000.0f),
                (int)(result->normalized_residual * 1000000.0f));
 }
+
 
 static int app_capture_measurement(signal_analysis_result_t *measurement,
                                    u32 attempt)
@@ -157,6 +159,67 @@ static int app_same_lock_solution(const signal_analysis_result_t *left,
            left->channel_b.frequency_hz == right->channel_b.frequency_hz;
 }
 
+static void app_preserve_integer_frequency_ratio(
+    const signal_analysis_result_t *result, dds_channel_config_t *dds_a,
+    dds_channel_config_t *dds_b)
+{
+    float32_t ratio = result->channel_b.frequency_hz /
+                      result->channel_a.frequency_hz;
+    u32 integer_ratio = (u32)(ratio + 0.5f);
+
+    if (integer_ratio > 1U &&
+        fabsf(ratio - (float32_t)integer_ratio) < 0.001f) {
+        dds_b->phase_step = dds_a->phase_step * integer_ratio;
+    }
+}
+
+static void app_update_phase_setting(float32_t *phase_degrees,
+                                     float32_t phase_delta_degrees)
+{
+    *phase_degrees += phase_delta_degrees;
+    if (*phase_degrees > APP_PHASE_MAX_DEGREES) {
+        *phase_degrees = 0.0f;
+    } else if (*phase_degrees < 0.0f) {
+        *phase_degrees = APP_PHASE_MAX_DEGREES;
+    }
+    xil_printf("B-to-A phase setting: %d degrees\r\n", (int)*phase_degrees);
+}
+
+static int app_process_running_buttons(button_input_t *buttons,
+                                       dds_control_t *dds_control,
+                                       const dds_channel_config_t *dds_a,
+                                       const dds_channel_config_t *dds_b,
+                                       const dds_channel_config_t *stopped,
+                                       float32_t *phase_degrees)
+{
+    float32_t phase_delta_degrees = 0.0f;
+
+    if (button_input_take_reset_press(buttons)) {
+        if (dds_control_commit(dds_control, stopped, stopped, 0, 0) !=
+            XST_SUCCESS) {
+            return XST_FAILURE;
+        }
+        *phase_degrees = APP_B_TO_A_PHASE_DEGREES;
+        xil_printf("RESET: DDS stopped; return to ARMED\r\n");
+        return 2;
+    }
+    if (button_input_take_phase_increment_press(buttons)) {
+        phase_delta_degrees = APP_PHASE_STEP_DEGREES;
+    } else if (button_input_take_phase_decrement_press(buttons)) {
+        phase_delta_degrees = -APP_PHASE_STEP_DEGREES;
+    }
+
+    if (phase_delta_degrees == 0.0f) {
+        return 0;
+    }
+    if (dds_control_adjust_b_phase(dds_control, dds_a, dds_b,
+                                   phase_delta_degrees) != XST_SUCCESS) {
+        return XST_FAILURE;
+    }
+    app_update_phase_setting(phase_degrees, phase_delta_degrees);
+    return 0;
+}
+
 static int app_lock_timed_out(XTime start_time)
 {
     XTime current_time;
@@ -170,13 +233,13 @@ static int app_wait_for_start(button_input_t *buttons,
                               float32_t *phase_degrees)
 {
     while (1) {
-        if (button_input_take_phase_press(buttons)) {
-            *phase_degrees += APP_PHASE_STEP_DEGREES;
-            if (*phase_degrees > APP_PHASE_MAX_DEGREES) {
-                *phase_degrees = 0.0f;
-            }
-            xil_printf("B-to-A phase setting: %d degrees\r\n",
-                       (int)*phase_degrees);
+        if (button_input_take_reset_press(buttons)) {
+            *phase_degrees = APP_B_TO_A_PHASE_DEGREES;
+            xil_printf("RESET: DDS is already stopped\r\n");
+        } else if (button_input_take_phase_increment_press(buttons)) {
+            app_update_phase_setting(phase_degrees, APP_PHASE_STEP_DEGREES);
+        } else if (button_input_take_phase_decrement_press(buttons)) {
+            app_update_phase_setting(phase_degrees, -APP_PHASE_STEP_DEGREES);
         }
         if (button_input_take_start_press(buttons)) {
             return XST_SUCCESS;
@@ -226,9 +289,11 @@ int main(void)
     xil_printf("Init OK. Fs=%d Hz, bin width=%d Hz\r\n",
                (int)APP_SAMPLE_RATE_HZ, (int)APP_BIN_WIDTH_HZ);
     xil_printf("Self-test passed. DDS is stopped until KEY1.\r\n");
-    xil_printf("DBG key levels: KEY1=%d KEY2=%d active=%d\r\n",
+    xil_printf("DBG key levels: KEY1=%d RESET=%d INC=%d DEC=%d active=%d\r\n",
                (int)button_input_read_start_level(&buttons),
-               (int)button_input_read_phase_level(&buttons),
+               (int)button_input_read_reset_level(&buttons),
+               (int)button_input_read_phase_increment_level(&buttons),
+               (int)button_input_read_phase_decrement_level(&buttons),
                (int)APP_BUTTON_ACTIVE_LEVEL);
     diagnostics_report_dds_snapshot("stopped", &dds_control);
 
@@ -238,7 +303,7 @@ int main(void)
         u32 confirmed_frames = 0U;
         int have_candidate = 0;
 
-        xil_printf("ARMED: KEY2 sets phase, KEY1 starts one separation run\r\n");
+        xil_printf("ARMED: T17/R17 set phase, KEY1 starts one separation run\r\n");
         app_wait_for_start(&buttons, &phase_degrees);
         XTime_GetTime(&lock_start_time);
         xil_printf("START accepted: acquiring stable input descriptors\r\n");
@@ -260,6 +325,11 @@ int main(void)
 
             if (app_lock_timed_out(lock_start_time)) {
                 xil_printf("WARN: lock timeout; DDS remains stopped\r\n");
+                break;
+            }
+            if (button_input_take_reset_press(&buttons)) {
+                phase_degrees = APP_B_TO_A_PHASE_DEGREES;
+                xil_printf("RESET: lock cancelled; return to ARMED\r\n");
                 break;
             }
             lock_attempt++;
@@ -296,6 +366,7 @@ int main(void)
                                    phase_degrees +
                                    APP_DDS_B_PHASE_COMPENSATION_DEGREES,
                                    &dds_b);
+        app_preserve_integer_frequency_ratio(&locked_result, &dds_a, &dds_b);
         if (dds_control_commit(&dds_control, &dds_a, &dds_b, 1, 1) !=
             XST_SUCCESS) {
             xil_printf("ERROR: initial DDS commit failed\r\n");
@@ -304,8 +375,19 @@ int main(void)
 
         diagnostics_report_dds_snapshot("locked start", &dds_control);
         app_report_result(&locked_result);
-        xil_printf("RUNNING: frequency locked to 5 kHz grid; tracking disabled\r\n");
+        xil_printf("RUNNING: T17/R17 adjust B phase; N16 stops and rearms\r\n");
         while (1) {
+            int button_status = app_process_running_buttons(
+                &buttons, &dds_control, &dds_a, &dds_b, &stopped_channel,
+                &phase_degrees);
+
+            if (button_status == XST_FAILURE) {
+                xil_printf("ERROR: running button commit failed\r\n");
+                return XST_FAILURE;
+            }
+            if (button_status != 0) {
+                break;
+            }
             usleep(APP_BUTTON_POLL_US);
         }
     }

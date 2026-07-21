@@ -31,13 +31,16 @@ LOCKING -- 18 second timeout --> ARMED
 RUNNING -- no automatic DDS update --> stable output
 ```
 
-KEY2 is accepted only in `ARMED` to select the requested B'-to-A' phase in
-5-degree increments. This preserves the contest requirement that one start
-press begins an unattended separation run.
+KEY1/MIO50 starts a run. The active-low EMIO controls use N16/EMIO54 for
+software reset, T17/EMIO55 for a +5-degree B-to-A adjustment, and
+R17/EMIO56 for a -5-degree adjustment. Reset stops DDS and returns to `ARMED`.
+The phase buttons work before start and during `RUNNING`; a live adjustment
+does not restart the measurement state machine.
 
 ## BRAM Commit Rule
 
 PS must write A words, B words, and `DDS_CTRL` first. It writes
 `DDS_COMMIT_SEQ` last. Start commits use `RUN | PHASE_RELOAD`; tracking commits
-use `RUN` only. This protocol is mandatory because PL scans the dual-port BRAM
-across its own 125 MHz clock domain.
+use `RUN` only; live B phase commits use `RUN | B_PHASE_ADJUST` and encode a
+signed delta in B's phase word. This protocol is mandatory because PL scans
+the dual-port BRAM across its own 125 MHz clock domain.

@@ -209,3 +209,23 @@ confirm that an unpressed pin reads 1 and a pressed pin reads 0.
 Board observation of two DC outputs is ambiguous: DDS may correctly be stopped
 while source locking fails, or the output path may be faulty. The new logs make
 the next run sufficient to distinguish those cases without modifying RTL.
+# 2026-07-20 - EMIO Runtime Controls and Integer-Ratio DDS Lock
+
+## Changed
+
+- Moved phase adjustment from MIO51 to active-low PS EMIO inputs: N16/EMIO54
+  resets the application to `ARMED`, T17/EMIO55 adds 5 degrees, and
+  R17/EMIO56 subtracts 5 degrees. KEY1/MIO50 remains the start button.
+- N16 issues a stopped DDS commit, returning both DAC outputs to midscale;
+  the next KEY1 press performs a fresh measurement and start sequence.
+- Added the BRAM control bit `DDS_CTRL[2]` for a live B-channel phase delta.
+  T17/R17 update B by +/-5 degrees without phase-reloading A or B.
+- When the two locked frequencies have an integer ratio, B's DDS phase step
+  is derived from A's quantized phase step. This prevents independent rounding
+  from causing a continuous relative phase drift for 25/75 kHz and similar
+  integer-ratio pairs.
+
+## Verification
+
+- Forced PS `make -B all` completed and linked `Signal_separation_app.elf`
+  against the current platform BSP.

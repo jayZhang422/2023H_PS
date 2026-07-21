@@ -128,3 +128,11 @@ platform clean
 platform generate
 platform clean
 platform generate
+platform active {Signal_separation_platform}
+platform config -updatehw {E:/7020_Project/2023H/2023H_PL/2023H_pl/top.xsa}
+bsp reload
+catch {bsp regenerate}
+platform clean
+platform generate
+platform clean
+platform generate

@@ -31,5 +31,9 @@ int dds_control_commit(dds_control_t *control,
                        const dds_channel_config_t *channel_b,
                        int phase_reload,
                        int run);
+int dds_control_adjust_b_phase(dds_control_t *control,
+                               const dds_channel_config_t *channel_a,
+                               const dds_channel_config_t *channel_b,
+                               float32_t phase_delta_degrees);
 
 #endif /* USER_INCLUDE_DDS_CONTROL_H_ */
